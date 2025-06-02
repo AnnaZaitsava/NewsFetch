@@ -16,6 +16,8 @@ struct NewsApp: App {
         UINavigationBar.appearance().titleTextAttributes = [
             .foregroundColor: UIColor.blackCustom
         ]
+        
+        NetworkMonitor.shared.startMonitoring()
     }
     
     var body: some Scene {

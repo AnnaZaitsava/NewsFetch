@@ -1,54 +1,34 @@
 import Network
 import Combine
 
-/// Service that monitors network connectivity status
+import Foundation
+import Network
+
 final class NetworkMonitor: ObservableObject {
-    /// Published property indicating if the device has an active internet connection
-    @Published private(set) var isConnected = true
     
-    /// Published property containing the current connection type
-    @Published private(set) var connectionType: ConnectionType = .unknown
+    //MARK: - Singleton
+    static let shared = NetworkMonitor()
     
-    private let monitor = NWPathMonitor()
-    private let queue = DispatchQueue(label: "NetworkMonitor", qos: .background)
+    // MARK: - Properties
+    private lazy var monitor = NWPathMonitor()
+    /// Current network  status.
+    @Published private(set) var isConnected: Bool = true
     
-    /// Connection types that can be detected
-    enum ConnectionType {
-        case wifi
-        case cellular
-        case ethernet
-        case unknown
-    }
     
-    init() {
-        setupMonitor()
-    }
+    // MARK: - Lifecycle & Configuration
     
-    deinit {
-        monitor.cancel()
-    }
-    
-    private func setupMonitor() {
-        monitor.pathUpdateHandler = { [weak self] path in
-            guard let self = self else { return }
+    /// Starts monitoring network changes and updates `isConnected` when status changes.
+    func startMonitoring() {
+        self.monitor.pathUpdateHandler = { [weak self] path in
             DispatchQueue.main.async {
-                self.isConnected = path.status == .satisfied
-                self.connectionType = self.checkConnectionType(path)
+                let newState = path.status == .satisfied
+                guard self?.isConnected != newState else { return }
+                
+                self?.isConnected = newState
             }
         }
         
-        monitor.start(queue: queue)
+        self.monitor.start(queue: DispatchQueue(label: "network-queue"))
     }
-    
-    private func checkConnectionType(_ path: NWPath) -> ConnectionType {
-        if path.usesInterfaceType(.wifi) {
-            return .wifi
-        } else if path.usesInterfaceType(.cellular) {
-            return .cellular
-        } else if path.usesInterfaceType(.wiredEthernet) {
-            return .ethernet
-        } else {
-            return .unknown
-        }
-    }
-} 
+}
+

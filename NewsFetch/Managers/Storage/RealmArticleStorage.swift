@@ -1,11 +1,12 @@
 import RealmSwift
 import Combine
 
-/// Realm implementation of ArticleStorage
 final class RealmArticleStorage: ArticleStorage {
+    //MARK: - Singleton
     static let shared = RealmArticleStorage()
     private let realm: Realm
     
+    // MARK: - Initialization
     private init() {
         do {
             realm = try Realm()
@@ -14,16 +15,25 @@ final class RealmArticleStorage: ArticleStorage {
         }
     }
     
+    // MARK: - Fetching
+    
+    /// Retrieves a list of favorite articles stored in Realm.
+    /// - Returns: An array of Article objects marked as favorites.
     func getFavoriteArticles() -> [Article] {
         let objects = realm.objects(ArticleObject.self).filter("isFavorite == true")
         return Array(objects.map { $0.toArticle })
     }
     
+    /// Retrieves a list of blocked articles stored in Realm.
+    /// - Returns: An array of Article objects marked as blocked.
     func getBlockedArticles() -> [Article] {
         let objects = realm.objects(ArticleObject.self).filter("isBlocked == true")
         return Array(objects.map { $0.toArticle })
     }
     
+    // MARK: - Favorites
+    /// Adds an article to favorites.
+    /// - Parameter article: The Article object to be added to favorites.
     func addToFavorites(_ article: Article) {
         do {
             try realm.write {
@@ -39,6 +49,8 @@ final class RealmArticleStorage: ArticleStorage {
         }
     }
     
+    /// Removes an article from favorites.
+    /// - Parameter article: The Article object to be removed from favorites.
     func removeFromFavorites(_ article: Article) {
         do {
             try realm.write {
@@ -54,6 +66,9 @@ final class RealmArticleStorage: ArticleStorage {
         }
     }
     
+    // MARK: - Blocking
+    /// Blocks an article. If the article already exists, it updates the isBlocked flag.
+    /// - Parameter article: The Article object to be blocked.
     func blockArticle(_ article: Article) {
         do {
             try realm.write {
@@ -69,6 +84,8 @@ final class RealmArticleStorage: ArticleStorage {
         }
     }
     
+    /// Unblocks an article. If the article is not a favorite, it will be deleted.
+    /// - Parameter article: The Article object to be unblocked.
     func unblockArticle(_ article: Article) {
         do {
             try realm.write {
@@ -84,6 +101,10 @@ final class RealmArticleStorage: ArticleStorage {
         }
     }
     
+    
+    /// MARK: - Observers
+    /// Observes changes to favorite articles in Realm and emits updated arrays.
+    /// - Returns: A publisher that emits arrays of favorite Article objects.
     func observeFavorites() -> AnyPublisher<[Article], Never> {
         let objects = realm.objects(ArticleObject.self).filter("isFavorite == true")
         return objects
@@ -93,6 +114,8 @@ final class RealmArticleStorage: ArticleStorage {
             .eraseToAnyPublisher()
     }
     
+    /// Observes changes to blocked articles in Realm and emits updated arrays.
+    /// - Returns: A publisher that emits arrays of blocked Article objects.
     func observeBlocked() -> AnyPublisher<[Article], Never> {
         let objects = realm.objects(ArticleObject.self).filter("isBlocked == true")
         return objects

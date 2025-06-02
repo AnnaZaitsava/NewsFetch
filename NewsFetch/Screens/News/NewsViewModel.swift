@@ -4,7 +4,7 @@ import RealmSwift
 
 final class NewsViewModel: ObservableObject {
     // MARK: - Published Properties
-    
+    /// Published properties for view binding and UI updates.
     @Published var navigationBlocks: [NavigationBlock] = []
     @Published var articles: [Article] = []
     @Published var error: String? = nil
@@ -15,15 +15,15 @@ final class NewsViewModel: ObservableObject {
     @Published var articleToBlock: Article?
     
     // MARK: - Private Properties
-    
+    /// Internal state and dependencies used by the view model.
     private var currentPage = 1
     private let service: NewsAPIService
     private let storage: ArticleStorage
     private var cancellables = Set<AnyCancellable>()
     
     // MARK: - Computed Properties
-    
-    var articlesWithNavigation: [NewsItem] {
+    /// Model:  returns  News + Blocks
+    var newsModel: [NewsItem] {
         var result: [NewsItem] = []
         let filtered = articles.filter { !blockedArticles.contains($0) }
         
@@ -55,6 +55,10 @@ final class NewsViewModel: ObservableObject {
     }
     
     // MARK: - Initialization
+    /// Initializes the NewsViewModel with a service and storage.
+    /// - Parameters:
+    ///   - service: The NewsAPIService instance to fetch data from API.
+    ///   - storage: The ArticleStorage instance to manage local article state.
     
     init(service: NewsAPIService = NewsAPIService(), storage: ArticleStorage = RealmArticleStorage.shared) {
         self.service = service
@@ -66,6 +70,7 @@ final class NewsViewModel: ObservableObject {
     
     // MARK: - Private Methods
     
+    /// Sets up observers for favorite and blocked articles using Combine publishers.
     private func setupObservers() {
         storage.observeFavorites()
             .catch { error -> AnyPublisher<[Article], Never> in
@@ -74,7 +79,7 @@ final class NewsViewModel: ObservableObject {
             }
             .receive(on: DispatchQueue.main)
             .assign(to: &$favoriteArticles)
-            
+        
         storage.observeBlocked()
             .catch { error -> AnyPublisher<[Article], Never> in
                 print("Error observing blocked: \(error)")
@@ -84,6 +89,7 @@ final class NewsViewModel: ObservableObject {
             .assign(to: &$blockedArticles)
     }
     
+    /// Loads navigation blocks from the API and binds them to navigationBlocks property.
     private func loadNavigationBlocks() {
         service.fetchNavigationBlocks()
             .receive(on: DispatchQueue.main)
@@ -102,6 +108,8 @@ final class NewsViewModel: ObservableObject {
     
     // MARK: - Public Methods
     
+    /// Blocks an article and removes it from the list of visible articles.
+    /// - Parameter article: The article to be blocked.
     func blockArticle(_ article: Article) {
         storage.blockArticle(article)
         articles.removeAll { $0.id == article.id }
@@ -113,6 +121,8 @@ final class NewsViewModel: ObservableObject {
         }
     }
     
+    /// Unblocks an article and restores it to the list if not blocked.
+    /// - Parameter article: The article to be unblocked.
     func unblockArticle(_ article: Article) {
         storage.unblockArticle(article)
         blockedArticles.removeAll { $0.id == article.id }
@@ -122,16 +132,21 @@ final class NewsViewModel: ObservableObject {
         }
     }
     
+    /// Adds an article to favorites.
+    /// - Parameter article: The article to add to favorites.
     func addToFavorites(_ article: Article) {
         storage.addToFavorites(article)
         favoriteArticles.append(article)
     }
     
+    /// Removes an article from favorites.
+    /// - Parameter article: The article to remove from favorites.
     func removeFromFavorites(_ article: Article) {
         storage.removeFromFavorites(article)
         favoriteArticles.removeAll { $0.id == article.id }
     }
     
+    /// Loads the next page of news articles from the API.
     func loadPage() {
         guard !isLoading else { return }
         isLoading = true
@@ -157,11 +172,8 @@ final class NewsViewModel: ObservableObject {
                 receiveValue: { [weak self] newArticles in
                     guard let self = self else { return }
                     
-                    if self.currentPage == 1 {
-                        self.articles = newArticles
-                    } else {
-                        self.articles.append(contentsOf: newArticles)
-                    }
+                    self.articles.append(contentsOf: newArticles)
+                    
                     self.currentPage += 1
                     self.isLoading = false
                 }
@@ -169,21 +181,14 @@ final class NewsViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
+    /// Paggination
     func refresh() {
-        currentPage = 1
-        articles.removeAll()
         loadPage()
     }
     
+    /// Trying to load data in case of empty result.
     func retry() {
         currentPage = 1
-        articles.removeAll()
         loadPage()
     }
-    
-    func loadNextIfNeeded(currentItem item: Article) {
-        if articles.last == item {
-            loadPage()
-        }
-    }
-} 
+}
