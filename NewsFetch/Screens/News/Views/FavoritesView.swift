@@ -6,14 +6,14 @@ struct FavoritesView: View {
     var body: some View {
         if viewModel.favoriteArticles.isEmpty {
             EmptyStateView(
-                icon: "heart",
+                icon: "heart.circle.fill",
                 text: "No Favorite News"
             )
         } else {
             ScrollView {
                 LazyVStack(spacing: 8) {
                     ForEach(viewModel.favoriteArticles) { article in
-                        ArticleCardView(
+                        ArticleView(
                             viewModel: viewModel,
                             article: article
                         )

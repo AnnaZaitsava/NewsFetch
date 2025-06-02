@@ -14,8 +14,11 @@ struct NewsView: View {
     @State private var selectedURL: URL? = nil
     @State private var isShowingBrowser = false
     
+    //Segments Array
     let segments = ["All", "Favorites", "Blocked"]
     
+    
+    // MARK: - Layout
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -28,7 +31,7 @@ struct NewsView: View {
                 .padding(.horizontal, 16)
                 .padding(.bottom, 8)
                 
-                if viewModel.isLoading {
+                if viewModel.isLoading && viewModel.articles.isEmpty {
                     ProgressView()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .background(Color.beigeCustom)
@@ -55,7 +58,7 @@ struct NewsView: View {
             .background(Color.beigeCustom)
         }
         .overlay {
-            if viewModel.isLoading {
+            if viewModel.isLoading && viewModel.articles.isEmpty {
                 BlurView {
                     ProgressView()
                         .scaleEffect(1.5)

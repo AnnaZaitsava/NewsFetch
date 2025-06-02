@@ -13,7 +13,7 @@ struct BlockedView: View {
             ScrollView {
                 LazyVStack(spacing: 8) {
                     ForEach(viewModel.blockedArticles) { article in
-                        ArticleCardView(
+                        ArticleView(
                             viewModel: viewModel,
                             article: article
                         )

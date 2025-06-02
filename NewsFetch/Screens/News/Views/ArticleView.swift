@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct ArticleCardView: View {
+struct ArticleView: View {
     
     @ObservedObject var viewModel: NewsViewModel
     let article: Article

@@ -10,6 +10,7 @@ class ArticleObject: Object {
     @Persisted var isFavorite: Bool
     @Persisted var isBlocked: Bool
     
+    // MARK: - Initialization
     convenience init(article: Article, isFavorite: Bool = false, isBlocked: Bool = false) {
         self.init()
         self.id = article.id
@@ -22,6 +23,7 @@ class ArticleObject: Object {
         self.isBlocked = isBlocked
     }
     
+    // MARK: Mapping
     var toArticle: Article {
         Article(
             id: id,

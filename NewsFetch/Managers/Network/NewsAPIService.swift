@@ -6,11 +6,20 @@ final class NewsAPIService: APIService {
     private let session: URLSession
     private let decoder: JSONDecoder
     
+    // MARK: - Initialization
+    /// Initializes the service with a URLSession and JSONDecoder.
+       /// - Parameters:
+       ///   - session: The URLSession to use for network requests. Defaults to `.shared`.
     init(session: URLSession = .shared) {
         self.session = session
         self.decoder = JSONDecoder()
     }
     
+    // MARK: - News Fetching
+        
+        /// Fetches a page of news articles from the API.
+        /// - Parameter page: The page number to fetch (1-based index).
+        /// - Returns: A publisher emitting an array of `Article` objects or an error.
     func fetchNews(page: Int) -> AnyPublisher<[Article], Error> {
         guard var components = URLComponents(string: "\(baseURL)/guardian") else {
             return Fail(error: APIError.invalidURL).eraseToAnyPublisher()
@@ -46,6 +55,10 @@ final class NewsAPIService: APIService {
             .eraseToAnyPublisher()
     }
     
+    // MARK: - Navigation Blocks
+        
+        /// Fetches navigation blocks from the API.
+        /// - Returns: A publisher emitting an array of `NavigationBlock` objects or an error.
     func fetchNavigationBlocks() -> AnyPublisher<[NavigationBlock], Error> {
         guard let url = URL(string: "\(baseURL)/navigation") else {
             return Fail(error: APIError.invalidURL).eraseToAnyPublisher()
