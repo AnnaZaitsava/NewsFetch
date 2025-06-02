@@ -23,7 +23,7 @@ final class NewsViewModel: ObservableObject {
     
     // MARK: - Computed Properties
     
-    var articlesWithNavigation: [NewsItem] {
+    var newsModel: [NewsItem] {
         var result: [NewsItem] = []
         let filtered = articles.filter { !blockedArticles.contains($0) }
         
@@ -74,7 +74,7 @@ final class NewsViewModel: ObservableObject {
             }
             .receive(on: DispatchQueue.main)
             .assign(to: &$favoriteArticles)
-            
+        
         storage.observeBlocked()
             .catch { error -> AnyPublisher<[Article], Never> in
                 print("Error observing blocked: \(error)")
@@ -157,11 +157,8 @@ final class NewsViewModel: ObservableObject {
                 receiveValue: { [weak self] newArticles in
                     guard let self = self else { return }
                     
-                    if self.currentPage == 1 {
-                        self.articles = newArticles
-                    } else {
-                        self.articles.append(contentsOf: newArticles)
-                    }
+                    self.articles.append(contentsOf: newArticles)
+                    
                     self.currentPage += 1
                     self.isLoading = false
                 }
@@ -170,14 +167,11 @@ final class NewsViewModel: ObservableObject {
     }
     
     func refresh() {
-        currentPage = 1
-        articles.removeAll()
         loadPage()
     }
     
     func retry() {
         currentPage = 1
-        articles.removeAll()
         loadPage()
     }
     
@@ -186,4 +180,4 @@ final class NewsViewModel: ObservableObject {
             loadPage()
         }
     }
-} 
+}

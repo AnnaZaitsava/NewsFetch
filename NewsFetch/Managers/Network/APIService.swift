@@ -8,9 +8,6 @@ protocol APIService {
     
     /// Fetch navigation blocks
     func fetchNavigationBlocks() -> AnyPublisher<[NavigationBlock], Error>
-    
-    /// Fetch articles
-    func fetchArticles() async throws -> [Article]
 }
 
 /// API-related errors

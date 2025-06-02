@@ -17,7 +17,8 @@ final class NewsAPIService: APIService {
         }
         
         components.queryItems = [
-            URLQueryItem(name: "page", value: "\(page)")
+            URLQueryItem(name: "page", value: "\(page)"),
+            URLQueryItem(name: "page-size", value: "20")
         ]
         
         guard let url = components.url else {
@@ -69,21 +70,5 @@ final class NewsAPIService: APIService {
             .map { $0.results }
             .receive(on: DispatchQueue.main)
             .eraseToAnyPublisher()
-    }
-    
-    func fetchArticles() async throws -> [Article] {
-        let url = URL(string: "\(baseURL)/guardian")!
-        var request = URLRequest(url: url)
-        request.setValue("hanna-zaitsava", forHTTPHeaderField: "Authorization")
-        
-        let (data, response) = try await URLSession.shared.data(from: url)
-        
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200..<300).contains(httpResponse.statusCode) else {
-            throw APIError.serverError((response as? HTTPURLResponse)?.statusCode ?? 500)
-        }
-        
-        let decodedResponse = try decoder.decode(NewsResponse.self, from: data)
-        return decodedResponse.response.results
     }
 }
